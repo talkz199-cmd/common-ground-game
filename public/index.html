@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>מכנה משותף 🎉</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- Screen 1: onboarding -->
+  <section id="screen-onboarding" class="screen active">
+    <h1>🎉 מכנה משותף</h1>
+    <p class="subtitle">הכניסו שם, צלמו סלפי והצטרפו למשחק</p>
+    <form id="join-form">
+      <input id="name-input" type="text" placeholder="השם שלך" autocomplete="off" required maxlength="30" />
+      <input id="team-input" type="text" placeholder="צוות / מחלקה" autocomplete="off" maxlength="30" />
+
+      <div id="camera-wrap">
+        <video id="camera-video" autoplay playsinline muted></video>
+        <img id="photo-preview" hidden alt="הסלפי שלך" />
+        <canvas id="camera-canvas" hidden></canvas>
+        <div id="camera-status">טוען מצלמה...</div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" id="capture-btn" class="btn btn-primary">📸 צלם סלפי</button>
+        <button type="button" id="retake-btn" class="btn btn-secondary" hidden>↺ צלם שוב</button>
+      </div>
+
+      <button type="submit" id="join-btn" class="btn btn-accent" disabled>הצטרפות למשחק 🚀</button>
+    </form>
+  </section>
+
+  <!-- Screen 2: room -->
+  <section id="screen-room" class="screen">
+    <header id="room-header">
+      <div id="my-score">⭐ הניקוד שלי: <span id="score-value">0</span></div>
+      <div id="timer">04:00</div>
+    </header>
+
+    <div id="stage"></div>
+
+    <div id="room-footer">
+      <button id="start-btn" class="btn btn-accent" hidden>🚀 התחילו את המשחק</button>
+      <p id="hint">הקישו על אחד המשתתפים כדי לחפש איתו מכנה משותף — <b>לא קשור לצבא!</b></p>
+      <p id="waiting-msg">ממתינים שמישהו ילחץ "התחילו את המשחק"...</p>
+    </div>
+  </section>
+
+  <!-- Modal: add common ground -->
+  <div id="modal-overlay" hidden>
+    <div id="modal">
+      <button id="modal-close" aria-label="סגור">✕</button>
+      <div id="modal-person"></div>
+      <div id="modal-list"></div>
+      <form id="modal-form">
+        <input id="modal-input" maxlength="120" placeholder="מה משותף לכם? (לא קשור לצבא)" autocomplete="off" />
+        <button type="submit" class="btn btn-accent">הוסיפו +1 נקודה</button>
+      </form>
+      <p id="modal-msg"></p>
+    </div>
+  </div>
+
+  <!-- End-of-time countdown -->
+  <div id="countdown-overlay" hidden>
+    <div id="countdown-number">10</div>
+    <div class="countdown-text">⏱️ הזמן נגמר! התוצאות בעוד...</div>
+  </div>
+
+  <!-- Winner screen -->
+  <div id="end-overlay" hidden>
+    <h1>🏆 יש לנו מנצח/ת!</h1>
+    <img id="winner-photo" alt="המנצח" />
+    <div id="winner-name"></div>
+    <div id="winner-score"></div>
+    <h2>טבלת ניקוד מלאה</h2>
+    <ol id="leaderboard"></ol>
+    <button id="newgame-btn" class="btn btn-secondary">🔄 משחק חדש</button>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
