@@ -15,7 +15,14 @@
     <p class="subtitle">הכניסו שם, צלמו סלפי והצטרפו למשחק</p>
     <form id="join-form">
       <input id="name-input" type="text" placeholder="השם שלך" autocomplete="off" required maxlength="30" />
-      <input id="team-input" type="text" placeholder="צוות / מחלקה" autocomplete="off" maxlength="30" />
+      <select id="team-input" required>
+        <option value="" disabled selected>בחרו צוות</option>
+        <option value="צוות אדרי">צוות אדרי</option>
+        <option value="צוות יחזקאלי">צוות יחזקאלי</option>
+        <option value="צוות קסירר">צוות קסירר</option>
+        <option value="צוות יוחי">צוות יוחי</option>
+        <option value="המפלג אריות">המפלג אריות</option>
+      </select>
 
       <div id="camera-wrap">
         <video id="camera-video" autoplay playsinline muted></video>

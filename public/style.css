@@ -40,13 +40,18 @@ h2 { font-size: 1.1rem; margin: 16px 0 6px; }
   min-height: 0;
 }
 
-input[type="text"] {
+input[type="text"], #team-input {
   padding: 12px 14px;
   border-radius: 12px;
   border: none;
   font-size: 1rem;
   background: rgba(255,255,255,.92);
 }
+#team-input {
+  color: #1c1430;
+  font-family: inherit;
+}
+#team-input:invalid { color: #6b6578; }
 
 #camera-wrap {
   position: relative;

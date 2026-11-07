@@ -117,18 +117,19 @@
   }
 
   function updateJoinBtn() {
-    joinBtn.disabled = !(nameInput.value.trim() && myPhoto);
+    joinBtn.disabled = !(nameInput.value.trim() && teamInput.value && myPhoto);
   }
 
   captureBtn.addEventListener('click', capturePhoto);
   retakeBtn.addEventListener('click', retake);
   nameInput.addEventListener('input', updateJoinBtn);
+  teamInput.addEventListener('change', updateJoinBtn);
 
   joinForm.addEventListener('submit', (e) => {
     e.preventDefault();
     myName = nameInput.value.trim();
-    myTeam = teamInput.value.trim();
-    if (!myName || !myPhoto) return;
+    myTeam = teamInput.value;
+    if (!myName || !myTeam || !myPhoto) return;
     localStorage.setItem('cg_name', myName);
     localStorage.setItem('cg_team', myTeam);
     localStorage.setItem('cg_photo', myPhoto);
