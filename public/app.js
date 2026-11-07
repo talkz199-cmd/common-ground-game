@@ -15,7 +15,7 @@
   let countdownInterval = null;
   let timerInterval = null;
 
-  const ARMY_WORDS = ['צבא', 'צה"ל', 'צהל', 'יחידה', 'גדוד', 'פלוגה', 'מילואים', 'שירות צבאי', 'טירונות', 'קורס קצינים', 'סדיר'];
+  const ARMY_WORDS = ['צבא', 'צה"ל', 'צהל', 'יחידה', 'גדוד', 'פלוגה', 'מילואים', 'שירות צבאי', 'טירונות', 'קורס קצינים', 'סדיר', 'יעל', 'סמור', 'ספ', 'מסלול', 'צוות', 'בסיס', 'מחלקה', 'קצין', 'קצונה', 'סמל'];
 
   // ---------- DOM refs ----------
   const screenOnboarding = document.getElementById('screen-onboarding');
@@ -225,6 +225,10 @@
     alert('רק מי שהתחיל את המשחק עם הקוד יכול לסיים אותו.');
   });
 
+  socket.on('newGameError', () => {
+    alert('רק מי שהתחיל את המשחק עם הקוד יכול לפתוח משחק חדש.');
+  });
+
   socket.on('commonAck', (res) => {
     if (res.ok) {
       myConnections[res.toId] = { texts: res.texts };
@@ -251,6 +255,7 @@
       case 'not-running': return 'המשחק עדיין לא התחיל או שכבר נגמר הזמן.';
       case 'invalid-target': return 'שגיאה - נסו שוב.';
       case 'empty': return 'כתבו משהו קודם :)';
+      case 'army-word': return 'אסור להשתמש במילים הקשורות לצבא/יחידה — נסו משהו אחר 🙅';
       default: return 'לא ניתן להוסיף כרגע.';
     }
   }
@@ -472,6 +477,7 @@
       li.textContent = `${p.name}${p.team ? ' (' + p.team + ')' : ''} — ${p.score} נק'`;
       leaderboard.appendChild(li);
     });
+    newgameBtn.hidden = !(myId && gameState.hostId === myId);
     endOverlay.hidden = false;
   }
 
@@ -620,6 +626,7 @@
     modalPerson.textContent = `${other.name}${other.team ? ' · ' + other.team : ''}`;
     renderModalList(id);
     modalMsg.textContent = '';
+    modalSubmitBtn.disabled = false;
 
     const sameTeam = me && me.team && other.team && me.team.toLowerCase() === other.team.toLowerCase();
     const notRunning = gameState.status !== 'running';
@@ -665,13 +672,21 @@
     if (e.target === modalOverlay) closeModal();
   });
 
+  const modalSubmitBtn = modalForm.querySelector('button[type="submit"]');
+  const ARMY_BLOCK_MSG = 'אסור להשתמש במילים הקשורות לצבא/יחידה — נסו משהו אחר 🙅';
+
+  function containsArmyWord(text) {
+    return ARMY_WORDS.some(w => text.includes(w));
+  }
+
   modalInput.addEventListener('input', () => {
     const val = modalInput.value;
-    const hasArmyWord = ARMY_WORDS.some(w => val.includes(w));
-    if (hasArmyWord) {
-      modalMsg.style.color = '#b2843b';
-      modalMsg.textContent = 'שימו לב: מכנה משותף צריך להיות לא קשור לצבא 😉';
-    } else if (modalMsg.textContent.includes('צבא')) {
+    const blocked = containsArmyWord(val);
+    modalSubmitBtn.disabled = blocked;
+    if (blocked) {
+      modalMsg.style.color = '#b23b3b';
+      modalMsg.textContent = ARMY_BLOCK_MSG;
+    } else if (modalMsg.textContent === ARMY_BLOCK_MSG) {
       modalMsg.textContent = '';
     }
   });
@@ -680,6 +695,11 @@
     e.preventDefault();
     const text = modalInput.value.trim();
     if (!text || !currentModalTarget) return;
+    if (containsArmyWord(text)) {
+      modalMsg.style.color = '#b23b3b';
+      modalMsg.textContent = ARMY_BLOCK_MSG;
+      return;
+    }
     socket.emit('addCommon', { toId: currentModalTarget, text });
   });
 

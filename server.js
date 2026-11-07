@@ -15,6 +15,7 @@ const END_COUNTDOWN_MS = 10 * 1000; // 10 seconds
 const MAX_PER_PAIR = 3;
 const START_CODE = '4788';
 const EXTEND_MS = 2 * 60 * 1000; // 2 minutes
+const ARMY_WORDS = ['צבא', 'צה"ל', 'צהל', 'יחידה', 'גדוד', 'פלוגה', 'מילואים', 'שירות צבאי', 'טירונות', 'קורס קצינים', 'סדיר', 'יעל', 'סמור', 'ספ', 'מסלול', 'צוות', 'בסיס', 'מחלקה', 'קצין', 'קצונה', 'סמל'];
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -203,6 +204,10 @@ io.on('connection', (socket) => {
       socket.emit('commonAck', { ok: false, toId, reason: 'empty' });
       return;
     }
+    if (ARMY_WORDS.some(w => text.includes(w))) {
+      socket.emit('commonAck', { ok: false, toId, reason: 'army-word' });
+      return;
+    }
     if (!toId || !players.has(toId) || toId === fromId) {
       socket.emit('commonAck', { ok: false, toId, reason: 'invalid-target' });
       return;
@@ -240,6 +245,11 @@ io.on('connection', (socket) => {
   });
 
   socket.on('newGame', () => {
+    const playerId = socketIdToPlayerId.get(socket.id);
+    if (!playerId || playerId !== game.hostId) {
+      socket.emit('newGameError', { reason: 'not-host' });
+      return;
+    }
     resetGame();
   });
 
