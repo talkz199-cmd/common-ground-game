@@ -14,6 +14,7 @@ const GAME_DURATION_MS = 4 * 60 * 1000; // 4 minutes
 const END_COUNTDOWN_MS = 10 * 1000; // 10 seconds
 const MAX_PER_PAIR = 3;
 const START_CODE = '4788';
+const EXTEND_MS = 2 * 60 * 1000; // 2 minutes
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -26,7 +27,8 @@ let joinCounter = 0;
 let game = {
   status: 'lobby', // lobby | running | timeup | ended
   startTime: null,
-  endsAt: null
+  endsAt: null,
+  hostId: null
 };
 let timeUpTimer = null;
 let endGameTimer = null;
@@ -66,23 +68,40 @@ function resetGame() {
   players.clear();
   socketIdToPlayerId.clear();
   joinCounter = 0;
-  game = { status: 'lobby', startTime: null, endsAt: null };
+  game = { status: 'lobby', startTime: null, endsAt: null, hostId: null };
   broadcastGameState();
   broadcastRoster();
 }
 
-function startGame() {
-  if (game.status !== 'lobby') return;
-  game.status = 'running';
-  game.startTime = Date.now();
-  game.endsAt = game.startTime + GAME_DURATION_MS;
-  broadcastGameState();
-
+function scheduleTimeUp(ms) {
+  clearTimeout(timeUpTimer);
   timeUpTimer = setTimeout(() => {
     game.status = 'timeup';
     broadcastGameState();
     endGameTimer = setTimeout(endGame, END_COUNTDOWN_MS);
-  }, GAME_DURATION_MS);
+  }, ms);
+}
+
+function startGame(hostId) {
+  if (game.status !== 'lobby') return;
+  game.status = 'running';
+  game.startTime = Date.now();
+  game.endsAt = game.startTime + GAME_DURATION_MS;
+  game.hostId = hostId;
+  broadcastGameState();
+  scheduleTimeUp(GAME_DURATION_MS);
+}
+
+function extendGame() {
+  if (game.status !== 'running' && game.status !== 'timeup') return false;
+  clearTimeout(endGameTimer);
+  const now = Date.now();
+  const base = Math.max(game.endsAt, now);
+  game.endsAt = base + EXTEND_MS;
+  game.status = 'running';
+  broadcastGameState();
+  scheduleTimeUp(game.endsAt - now);
+  return true;
 }
 
 function endGame() {
@@ -138,7 +157,17 @@ io.on('connection', (socket) => {
       socket.emit('startError', { reason: 'wrong-code' });
       return;
     }
-    startGame();
+    startGame(playerId);
+  });
+
+  socket.on('extendTime', () => {
+    const playerId = socketIdToPlayerId.get(socket.id);
+    if (!playerId || playerId !== game.hostId) {
+      socket.emit('extendError', { reason: 'not-host' });
+      return;
+    }
+    const ok = extendGame();
+    if (!ok) socket.emit('extendError', { reason: 'not-active' });
   });
 
   socket.on('addCommon', (data = {}) => {

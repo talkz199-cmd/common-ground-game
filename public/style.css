@@ -262,7 +262,7 @@ button.modal-item:active { background: #e4dafc; }
   margin-bottom: 10px;
 }
 #modal-msg, #code-msg { margin-top: 8px; font-size: .82rem; color: #b23b3b; min-height: 1.1em; }
-#find-btn { margin-bottom: 10px; width: 100%; }
+#find-btn, #extend-btn { margin-bottom: 10px; width: 100%; }
 
 /* ---- Countdown ---- */
 #countdown-overlay {

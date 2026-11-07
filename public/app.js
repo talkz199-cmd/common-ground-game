@@ -10,7 +10,7 @@
   let roster = new Map(); // id -> player
   let myConnections = {}; // toId -> {texts:[]}
   let avatars = new Map(); // id -> avatar object
-  let gameState = { status: 'lobby', startTime: null, endsAt: null };
+  let gameState = { status: 'lobby', startTime: null, endsAt: null, hostId: null };
   let currentModalTarget = null;
   let countdownInterval = null;
   let timerInterval = null;
@@ -36,6 +36,7 @@
   const stage = document.getElementById('stage');
   const startBtn = document.getElementById('start-btn');
   const findBtn = document.getElementById('find-btn');
+  const extendBtn = document.getElementById('extend-btn');
   const hint = document.getElementById('hint');
   const waitingMsg = document.getElementById('waiting-msg');
 
@@ -188,12 +189,18 @@
     }
     if (gs.status === 'timeup' && prevStatus !== 'timeup') {
       onTimeUp();
+    } else if (gs.status === 'running' && prevStatus === 'timeup') {
+      cancelTimeUpCountdown();
     }
   });
 
   socket.on('startError', () => {
     codeMsg.style.color = '#b23b3b';
     codeMsg.textContent = 'קוד שגוי, נסו שוב.';
+  });
+
+  socket.on('extendError', () => {
+    alert('רק מי שהתחיל את המשחק עם הקוד יכול להוסיף זמן.');
   });
 
   socket.on('commonAck', (res) => {
@@ -257,19 +264,26 @@
   });
 
   function updateStartButtonVisibility() {
+    const isHost = !!myId && gameState.hostId === myId;
     if (gameState.status === 'lobby') {
       startBtn.hidden = false;
       startBtn.disabled = false;
       findBtn.hidden = true;
+      extendBtn.hidden = true;
       hint.style.display = 'none';
       waitingMsg.style.display = 'block';
     } else {
       startBtn.hidden = true;
       waitingMsg.style.display = 'none';
       findBtn.hidden = gameState.status !== 'running';
+      extendBtn.hidden = !(isHost && (gameState.status === 'running' || gameState.status === 'timeup'));
       hint.style.display = gameState.status === 'running' ? 'block' : 'none';
     }
   }
+
+  extendBtn.addEventListener('click', () => {
+    socket.emit('extendTime');
+  });
 
   // ---------- find person ----------
   findBtn.addEventListener('click', () => {
@@ -349,6 +363,11 @@
         countdownNumber.textContent = n;
       }
     }, 1000);
+  }
+
+  function cancelTimeUpCountdown() {
+    clearInterval(countdownInterval);
+    countdownOverlay.hidden = true;
   }
 
   const CONFETTI_COLORS = ['#ff6b6b', '#ffd93d', '#4ecdc4', '#a06cff', '#4c9aff', '#ff9f4c', '#4ce0b3', '#ff4ce0', '#ffffff'];
