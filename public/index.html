@@ -54,6 +54,7 @@
       <button id="start-btn" class="btn btn-accent" hidden>🚀 התחילו את המשחק</button>
       <button id="find-btn" class="btn btn-secondary" hidden>🔎 מצאתי מישהו בחדר - הוסיפו מכנה משותף</button>
       <button id="extend-btn" class="btn btn-secondary" hidden>⏱️ הוסיפו 2 דקות למשחק</button>
+      <button id="end-now-btn" class="btn btn-secondary" hidden>🏁 סיימו עכשיו</button>
       <p id="hint">הקישו על אחד המשתתפים כדי לחפש איתו מכנה משותף — <b>לא קשור לצבא!</b></p>
       <p id="waiting-msg">ממתינים שמישהו ילחץ "התחילו את המשחק"...</p>
     </div>
@@ -105,13 +106,15 @@
   <!-- Winner screen -->
   <div id="end-overlay" hidden>
     <div id="confetti-container"></div>
-    <h1>🏆 יש לנו מנצח/ת!</h1>
-    <div id="winner-photo-wrap">
-      <div id="winner-crown">👑</div>
-      <img id="winner-photo" alt="המנצח" />
-    </div>
-    <div id="winner-name"></div>
+    <h1 id="end-title">🏆 יש לנו מנצח/ת!</h1>
+    <div id="winners-row"></div>
     <div id="winner-score"></div>
+    <div id="my-commons-section" hidden>
+      <div id="my-commons-label">🔗 המכנים המשותפים שלי:</div>
+      <div id="my-commons-viewport">
+        <div id="my-commons-strip"></div>
+      </div>
+    </div>
     <h2>טבלת ניקוד מלאה</h2>
     <ol id="leaderboard"></ol>
     <button id="newgame-btn" class="btn btn-secondary">🔄 משחק חדש</button>

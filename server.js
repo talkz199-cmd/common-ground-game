@@ -108,8 +108,9 @@ function endGame() {
   game.status = 'ended';
   const list = Array.from(players.values()).map(publicPlayer);
   list.sort((a, b) => b.score - a.score);
-  const winner = list.length ? list[0] : null;
-  io.emit('gameEnded', { winner, leaderboard: list });
+  const topScore = list.length ? list[0].score : 0;
+  const winners = list.length ? list.filter(p => p.score === topScore) : [];
+  io.emit('gameEnded', { winners, leaderboard: list });
   broadcastGameState();
 }
 
@@ -168,6 +169,21 @@ io.on('connection', (socket) => {
     }
     const ok = extendGame();
     if (!ok) socket.emit('extendError', { reason: 'not-active' });
+  });
+
+  socket.on('endNow', () => {
+    const playerId = socketIdToPlayerId.get(socket.id);
+    if (!playerId || playerId !== game.hostId) {
+      socket.emit('endNowError', { reason: 'not-host' });
+      return;
+    }
+    if (game.status !== 'running' && game.status !== 'timeup') {
+      socket.emit('endNowError', { reason: 'not-active' });
+      return;
+    }
+    clearTimeout(timeUpTimer);
+    clearTimeout(endGameTimer);
+    endGame();
   });
 
   socket.on('addCommon', (data = {}) => {

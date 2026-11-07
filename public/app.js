@@ -37,6 +37,7 @@
   const startBtn = document.getElementById('start-btn');
   const findBtn = document.getElementById('find-btn');
   const extendBtn = document.getElementById('extend-btn');
+  const endNowBtn = document.getElementById('end-now-btn');
   const hint = document.getElementById('hint');
   const waitingMsg = document.getElementById('waiting-msg');
 
@@ -63,10 +64,11 @@
   const countdownNumber = document.getElementById('countdown-number');
 
   const endOverlay = document.getElementById('end-overlay');
-  const winnerPhotoWrap = document.getElementById('winner-photo-wrap');
-  const winnerPhoto = document.getElementById('winner-photo');
-  const winnerName = document.getElementById('winner-name');
+  const endTitle = document.getElementById('end-title');
+  const winnersRow = document.getElementById('winners-row');
   const winnerScore = document.getElementById('winner-score');
+  const myCommonsSection = document.getElementById('my-commons-section');
+  const myCommonsStrip = document.getElementById('my-commons-strip');
   const leaderboard = document.getElementById('leaderboard');
   const newgameBtn = document.getElementById('newgame-btn');
   const confettiContainer = document.getElementById('confetti-container');
@@ -191,8 +193,24 @@
       onTimeUp();
     } else if (gs.status === 'running' && prevStatus === 'timeup') {
       cancelTimeUpCountdown();
+    } else if (gs.status === 'lobby' && prevStatus !== 'lobby') {
+      returnToLobby();
     }
   });
+
+  // called on every client when the server resets to a fresh lobby
+  // (e.g. someone pressed "משחק חדש"). Re-joins automatically using the
+  // name/team/photo already stored, since the server wiped all players.
+  function returnToLobby() {
+    clearInterval(countdownInterval);
+    countdownOverlay.hidden = true;
+    endOverlay.hidden = true;
+    closeModal();
+    myConnections = {};
+    if (myName && myPhoto) {
+      joinGame();
+    }
+  }
 
   socket.on('startError', () => {
     codeMsg.style.color = '#b23b3b';
@@ -201,6 +219,10 @@
 
   socket.on('extendError', () => {
     alert('רק מי שהתחיל את המשחק עם הקוד יכול להוסיף זמן.');
+  });
+
+  socket.on('endNowError', () => {
+    alert('רק מי שהתחיל את המשחק עם הקוד יכול לסיים אותו.');
   });
 
   socket.on('commonAck', (res) => {
@@ -218,8 +240,8 @@
     }
   });
 
-  socket.on('gameEnded', ({ winner, leaderboard: lb }) => {
-    showEndScreen(winner, lb);
+  socket.on('gameEnded', ({ winners, leaderboard: lb }) => {
+    showEndScreen(winners, lb);
   });
 
   function reasonText(reason) {
@@ -276,13 +298,21 @@
       startBtn.hidden = true;
       waitingMsg.style.display = 'none';
       findBtn.hidden = gameState.status !== 'running';
-      extendBtn.hidden = !(isHost && (gameState.status === 'running' || gameState.status === 'timeup'));
+      const hostCanControl = isHost && (gameState.status === 'running' || gameState.status === 'timeup');
+      extendBtn.hidden = !hostCanControl;
+      endNowBtn.hidden = !hostCanControl;
       hint.style.display = gameState.status === 'running' ? 'block' : 'none';
     }
   }
 
   extendBtn.addEventListener('click', () => {
     socket.emit('extendTime');
+  });
+
+  endNowBtn.addEventListener('click', () => {
+    if (confirm('לסיים את המשחק עכשיו ולהציג תוצאות?')) {
+      socket.emit('endNow');
+    }
   });
 
   // ---------- find person ----------
@@ -396,22 +426,48 @@
     confettiTimeout = setTimeout(() => { confettiContainer.innerHTML = ''; }, 9000);
   }
 
-  function showEndScreen(winner, lb) {
+  function showEndScreen(winners, lb) {
     clearInterval(countdownInterval);
     countdownOverlay.hidden = true;
-    if (winner) {
-      winnerPhotoWrap.hidden = false;
-      winnerPhoto.src = winner.photo;
-      winnerName.textContent = winner.name;
-      winnerScore.textContent = `${winner.score} מכנים משותפים!`;
+    winnersRow.innerHTML = '';
+    if (winners && winners.length) {
+      endTitle.textContent = winners.length > 1 ? '🏆 תיקו! יש לנו כמה מנצחים!' : '🏆 יש לנו מנצח/ת!';
+      winners.forEach(w => {
+        const item = document.createElement('div');
+        item.className = 'winner-item';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'winner-photo-wrap';
+        const crown = document.createElement('div');
+        crown.className = 'winner-crown';
+        crown.textContent = '👑';
+        const img = document.createElement('img');
+        img.className = 'winner-photo';
+        img.alt = w.name;
+        img.src = w.photo;
+        wrap.appendChild(crown);
+        wrap.appendChild(img);
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'winner-name';
+        nameEl.textContent = w.name;
+
+        item.appendChild(wrap);
+        item.appendChild(nameEl);
+        winnersRow.appendChild(item);
+      });
+      winnerScore.textContent = `${winners[0].score} מכנים משותפים!`;
       spawnConfetti();
     } else {
-      winnerPhotoWrap.hidden = true;
-      winnerName.textContent = 'אין עדיין מנצח';
+      endTitle.textContent = '🏆 סיום המשחק';
+      const noneEl = document.createElement('div');
+      noneEl.textContent = 'אין עדיין מנצח';
+      winnersRow.appendChild(noneEl);
       winnerScore.textContent = '';
     }
+    renderMyCommons();
     leaderboard.innerHTML = '';
-    lb.forEach((p, i) => {
+    lb.forEach((p) => {
       const li = document.createElement('li');
       li.textContent = `${p.name}${p.team ? ' (' + p.team + ')' : ''} — ${p.score} נק'`;
       leaderboard.appendChild(li);
@@ -419,11 +475,45 @@
     endOverlay.hidden = false;
   }
 
+  function renderMyCommons() {
+    myCommonsStrip.innerHTML = '';
+    const entries = [];
+    Object.keys(myConnections).forEach(toId => {
+      const other = roster.get(toId);
+      const name = other ? other.name : '';
+      (myConnections[toId].texts || []).forEach(text => {
+        entries.push({ name, text });
+      });
+    });
+    myCommonsSection.hidden = entries.length === 0;
+    if (!entries.length) return;
+
+    function buildCard(name, text) {
+      const card = document.createElement('div');
+      card.className = 'common-card';
+      const nameEl = document.createElement('span');
+      nameEl.className = 'common-card-name';
+      nameEl.textContent = name + ':';
+      const textEl = document.createElement('span');
+      textEl.className = 'common-card-text';
+      textEl.textContent = text;
+      card.appendChild(nameEl);
+      card.appendChild(textEl);
+      return card;
+    }
+
+    // render the list twice back-to-back so the ticker can loop seamlessly
+    entries.forEach(({ name, text }) => myCommonsStrip.appendChild(buildCard(name, text)));
+    entries.forEach(({ name, text }) => myCommonsStrip.appendChild(buildCard(name, text)));
+
+    const halfWidth = myCommonsStrip.scrollWidth / 2;
+    const speedPxPerSec = 55;
+    const duration = Math.max(8, halfWidth / speedPxPerSec);
+    myCommonsStrip.style.animationDuration = duration + 's';
+  }
+
   newgameBtn.addEventListener('click', () => {
     socket.emit('newGame');
-    endOverlay.hidden = true;
-    localStorage.removeItem('cg_playerId');
-    location.reload();
   });
 
   // ---------- avatars ----------

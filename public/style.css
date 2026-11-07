@@ -262,7 +262,7 @@ button.modal-item:active { background: #e4dafc; }
   margin-bottom: 10px;
 }
 #modal-msg, #code-msg { margin-top: 8px; font-size: .82rem; color: #b23b3b; min-height: 1.1em; }
-#find-btn, #extend-btn { margin-bottom: 10px; width: 100%; }
+#find-btn, #extend-btn, #end-now-btn { margin-bottom: 10px; width: 100%; }
 
 /* ---- Countdown ---- */
 #countdown-overlay {
@@ -320,12 +320,24 @@ button.modal-item:active { background: #e4dafc; }
   0% { transform: translateY(0) rotate(0deg); opacity: 1; }
   100% { transform: translateY(115vh) rotate(720deg); opacity: .85; }
 }
-#winner-photo-wrap {
-  position: relative;
-  display: inline-block;
+#winners-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 28px;
   margin: 26px 0 10px;
 }
-#winner-crown {
+.winner-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.winner-photo-wrap {
+  position: relative;
+  display: inline-block;
+}
+.winner-crown {
   position: absolute;
   top: -40px;
   left: 50%;
@@ -338,7 +350,7 @@ button.modal-item:active { background: #e4dafc; }
   0%, 100% { transform: translateX(-50%) rotate(-8deg) translateY(0); }
   50% { transform: translateX(-50%) rotate(-8deg) translateY(-7px); }
 }
-#winner-photo {
+.winner-photo {
   display: block;
   width: 150px;
   height: 150px;
@@ -348,8 +360,54 @@ button.modal-item:active { background: #e4dafc; }
   box-shadow: 0 6px 24px rgba(0,0,0,.4), 0 0 0 6px rgba(255,217,61,.35);
   margin: 0;
 }
-#winner-name { font-size: 1.6rem; font-weight: 900; }
+.winner-name { font-size: 1.3rem; font-weight: 900; }
 #winner-score { font-size: 1.1rem; margin-bottom: 10px; opacity: .9; }
+
+/* news-ticker style strip of common-ground finds, pinned to the bottom of
+   the end screen, auto-scrolling continuously without blocking anything */
+#my-commons-section {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10,5,30,.55);
+  backdrop-filter: blur(4px);
+  padding: 9px 0;
+  direction: rtl;
+}
+#my-commons-label {
+  flex: 0 0 auto;
+  font-weight: 800;
+  font-size: .8rem;
+  padding: 0 14px;
+  white-space: nowrap;
+}
+#my-commons-viewport {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+}
+#my-commons-strip {
+  display: flex;
+  width: max-content;
+  gap: 36px;
+  white-space: nowrap;
+  animation: ticker-scroll 20s linear infinite;
+}
+@keyframes ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.common-card { flex: 0 0 auto; font-size: .85rem; }
+.common-card-name { font-weight: 800; }
+.common-card-text { opacity: .88; margin-inline-start: 4px; }
+
+#end-overlay { padding-bottom: 60px; }
 #leaderboard {
   width: 100%;
   max-width: 400px;
