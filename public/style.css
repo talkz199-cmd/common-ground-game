@@ -297,14 +297,56 @@ button.modal-item:active { background: #e4dafc; }
   overflow-y: auto;
   text-align: center;
 }
+#end-overlay > *:not(#confetti-container) {
+  position: relative;
+  z-index: 2;
+}
+#confetti-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.confetti-piece {
+  position: absolute;
+  top: -20px;
+  opacity: .95;
+  animation-name: confetti-fall;
+  animation-timing-function: cubic-bezier(.4,.1,.6,.9);
+  animation-fill-mode: forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(115vh) rotate(720deg); opacity: .85; }
+}
+#winner-photo-wrap {
+  position: relative;
+  display: inline-block;
+  margin: 26px 0 10px;
+}
+#winner-crown {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-8deg);
+  font-size: 3rem;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.4));
+  animation: crown-bounce 1.6s ease-in-out infinite;
+}
+@keyframes crown-bounce {
+  0%, 100% { transform: translateX(-50%) rotate(-8deg) translateY(0); }
+  50% { transform: translateX(-50%) rotate(-8deg) translateY(-7px); }
+}
 #winner-photo {
+  display: block;
   width: 150px;
   height: 150px;
   border-radius: 50%;
   object-fit: cover;
   border: 5px solid #ffd93d;
-  box-shadow: 0 6px 20px rgba(0,0,0,.35);
-  margin: 10px 0;
+  box-shadow: 0 6px 24px rgba(0,0,0,.4), 0 0 0 6px rgba(255,217,61,.35);
+  margin: 0;
 }
 #winner-name { font-size: 1.6rem; font-weight: 900; }
 #winner-score { font-size: 1.1rem; margin-bottom: 10px; opacity: .9; }

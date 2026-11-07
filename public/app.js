@@ -62,11 +62,13 @@
   const countdownNumber = document.getElementById('countdown-number');
 
   const endOverlay = document.getElementById('end-overlay');
+  const winnerPhotoWrap = document.getElementById('winner-photo-wrap');
   const winnerPhoto = document.getElementById('winner-photo');
   const winnerName = document.getElementById('winner-name');
   const winnerScore = document.getElementById('winner-score');
   const leaderboard = document.getElementById('leaderboard');
   const newgameBtn = document.getElementById('newgame-btn');
+  const confettiContainer = document.getElementById('confetti-container');
 
   function showScreen(el) {
     [screenOnboarding, screenRoom].forEach(s => s.classList.remove('active'));
@@ -349,14 +351,43 @@
     }, 1000);
   }
 
+  const CONFETTI_COLORS = ['#ff6b6b', '#ffd93d', '#4ecdc4', '#a06cff', '#4c9aff', '#ff9f4c', '#4ce0b3', '#ff4ce0', '#ffffff'];
+  let confettiTimeout = null;
+
+  function spawnConfetti() {
+    confettiContainer.innerHTML = '';
+    const count = 140;
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.left = (Math.random() * 100) + '%';
+      piece.style.background = CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)];
+      const w = 6 + Math.random() * 7;
+      const h = 10 + Math.random() * 9;
+      piece.style.width = w + 'px';
+      piece.style.height = h + 'px';
+      piece.style.borderRadius = Math.random() < 0.5 ? '50%' : '2px';
+      const duration = 2.6 + Math.random() * 2.8;
+      const delay = Math.random() * 1.8;
+      piece.style.animationDuration = duration + 's';
+      piece.style.animationDelay = delay + 's';
+      confettiContainer.appendChild(piece);
+    }
+    clearTimeout(confettiTimeout);
+    confettiTimeout = setTimeout(() => { confettiContainer.innerHTML = ''; }, 9000);
+  }
+
   function showEndScreen(winner, lb) {
     clearInterval(countdownInterval);
     countdownOverlay.hidden = true;
     if (winner) {
+      winnerPhotoWrap.hidden = false;
       winnerPhoto.src = winner.photo;
       winnerName.textContent = winner.name;
       winnerScore.textContent = `${winner.score} מכנים משותפים!`;
+      spawnConfetti();
     } else {
+      winnerPhotoWrap.hidden = true;
       winnerName.textContent = 'אין עדיין מנצח';
       winnerScore.textContent = '';
     }
