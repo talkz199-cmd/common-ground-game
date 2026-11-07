@@ -44,15 +44,16 @@
 
     <div id="room-footer">
       <button id="start-btn" class="btn btn-accent" hidden>🚀 התחילו את המשחק</button>
+      <button id="find-btn" class="btn btn-secondary" hidden>🔎 מצאתי מישהו בחדר - הוסיפו מכנה משותף</button>
       <p id="hint">הקישו על אחד המשתתפים כדי לחפש איתו מכנה משותף — <b>לא קשור לצבא!</b></p>
       <p id="waiting-msg">ממתינים שמישהו ילחץ "התחילו את המשחק"...</p>
     </div>
   </section>
 
   <!-- Modal: add common ground -->
-  <div id="modal-overlay" hidden>
-    <div id="modal">
-      <button id="modal-close" aria-label="סגור">✕</button>
+  <div id="modal-overlay" class="sheet-overlay" hidden>
+    <div id="modal" class="sheet">
+      <button id="modal-close" class="sheet-close" aria-label="סגור">✕</button>
       <div id="modal-person"></div>
       <div id="modal-list"></div>
       <form id="modal-form">
@@ -60,6 +61,29 @@
         <button type="submit" class="btn btn-accent">הוסיפו +1 נקודה</button>
       </form>
       <p id="modal-msg"></p>
+    </div>
+  </div>
+
+  <!-- Modal: start code -->
+  <div id="code-overlay" class="sheet-overlay" hidden>
+    <div id="code-modal" class="sheet">
+      <button id="code-close" class="sheet-close" aria-label="סגור">✕</button>
+      <div id="modal-person">הכניסו קוד להתחלת המשחק</div>
+      <form id="code-form">
+        <input id="code-input" type="text" inputmode="numeric" maxlength="10" placeholder="קוד התחלה" autocomplete="off" />
+        <button type="submit" class="btn btn-accent">התחילו 🚀</button>
+      </form>
+      <p id="code-msg"></p>
+    </div>
+  </div>
+
+  <!-- Modal: find person -->
+  <div id="find-overlay" class="sheet-overlay" hidden>
+    <div id="find-modal" class="sheet">
+      <button id="find-close" class="sheet-close" aria-label="סגור">✕</button>
+      <div id="modal-person">עם מי מצאתם מכנה משותף?</div>
+      <input id="find-search" type="text" placeholder="חיפוש לפי שם..." autocomplete="off" />
+      <div id="find-list"></div>
     </div>
   </div>
 

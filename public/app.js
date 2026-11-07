@@ -35,6 +35,7 @@
   const timerEl = document.getElementById('timer');
   const stage = document.getElementById('stage');
   const startBtn = document.getElementById('start-btn');
+  const findBtn = document.getElementById('find-btn');
   const hint = document.getElementById('hint');
   const waitingMsg = document.getElementById('waiting-msg');
 
@@ -45,6 +46,17 @@
   const modalForm = document.getElementById('modal-form');
   const modalInput = document.getElementById('modal-input');
   const modalMsg = document.getElementById('modal-msg');
+
+  const codeOverlay = document.getElementById('code-overlay');
+  const codeClose = document.getElementById('code-close');
+  const codeForm = document.getElementById('code-form');
+  const codeInput = document.getElementById('code-input');
+  const codeMsg = document.getElementById('code-msg');
+
+  const findOverlay = document.getElementById('find-overlay');
+  const findClose = document.getElementById('find-close');
+  const findSearch = document.getElementById('find-search');
+  const findList = document.getElementById('find-list');
 
   const countdownOverlay = document.getElementById('countdown-overlay');
   const countdownNumber = document.getElementById('countdown-number');
@@ -168,9 +180,17 @@
     gameState = gs;
     updateStartButtonVisibility();
     updateTimerDisplay();
+    if (gs.status !== 'lobby') {
+      closeCodeModal();
+    }
     if (gs.status === 'timeup' && prevStatus !== 'timeup') {
       onTimeUp();
     }
+  });
+
+  socket.on('startError', () => {
+    codeMsg.style.color = '#b23b3b';
+    codeMsg.textContent = 'קוד שגוי, נסו שוב.';
   });
 
   socket.on('commonAck', (res) => {
@@ -210,24 +230,83 @@
     }
   }
 
-  // ---------- start button ----------
+  // ---------- start button + code ----------
   startBtn.addEventListener('click', () => {
-    startBtn.disabled = true;
-    socket.emit('startGame');
+    codeMsg.textContent = '';
+    codeInput.value = '';
+    codeOverlay.hidden = false;
+    setTimeout(() => codeInput.focus(), 50);
+  });
+
+  function closeCodeModal() {
+    codeOverlay.hidden = true;
+  }
+  codeClose.addEventListener('click', closeCodeModal);
+  codeOverlay.addEventListener('click', (e) => {
+    if (e.target === codeOverlay) closeCodeModal();
+  });
+
+  codeForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const code = codeInput.value.trim();
+    if (!code) return;
+    socket.emit('startGame', { code });
   });
 
   function updateStartButtonVisibility() {
     if (gameState.status === 'lobby') {
       startBtn.hidden = false;
       startBtn.disabled = false;
+      findBtn.hidden = true;
       hint.style.display = 'none';
       waitingMsg.style.display = 'block';
     } else {
       startBtn.hidden = true;
       waitingMsg.style.display = 'none';
+      findBtn.hidden = gameState.status !== 'running';
       hint.style.display = gameState.status === 'running' ? 'block' : 'none';
     }
   }
+
+  // ---------- find person ----------
+  findBtn.addEventListener('click', () => {
+    findSearch.value = '';
+    renderFindList('');
+    findOverlay.hidden = false;
+    setTimeout(() => findSearch.focus(), 50);
+  });
+
+  findSearch.addEventListener('input', () => renderFindList(findSearch.value));
+
+  function renderFindList(filter) {
+    const q = filter.trim().toLowerCase();
+    findList.innerHTML = '';
+    const others = Array.from(roster.values())
+      .filter(p => p.id !== myId && (!q || p.name.toLowerCase().includes(q)));
+    if (!others.length) {
+      const div = document.createElement('div');
+      div.className = 'modal-item';
+      div.textContent = 'לא נמצאו משתתפים בשם הזה';
+      findList.appendChild(div);
+      return;
+    }
+    others.forEach(p => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'modal-item';
+      btn.textContent = `${p.name}${p.team ? ' · ' + p.team : ''}`;
+      btn.addEventListener('click', () => {
+        findOverlay.hidden = true;
+        onAvatarTap(p.id);
+      });
+      findList.appendChild(btn);
+    });
+  }
+
+  findClose.addEventListener('click', () => { findOverlay.hidden = true; });
+  findOverlay.addEventListener('click', (e) => {
+    if (e.target === findOverlay) findOverlay.hidden = true;
+  });
 
   // ---------- timer ----------
   function updateTimerDisplay() {

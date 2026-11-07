@@ -183,7 +183,7 @@ input[type="text"] {
 #waiting-msg { font-size: .8rem; opacity: .75; margin: 6px 0 0; display: none; }
 
 /* ---- Modal ---- */
-#modal-overlay {
+.sheet-overlay {
   position: fixed;
   inset: 0;
   background: rgba(10,5,30,.6);
@@ -192,7 +192,7 @@ input[type="text"] {
   justify-content: center;
   z-index: 50;
 }
-#modal {
+.sheet {
   background: #fff;
   color: #1c1430;
   width: 100%;
@@ -203,7 +203,7 @@ input[type="text"] {
   max-height: 80vh;
   overflow-y: auto;
 }
-#modal-close {
+.sheet-close {
   position: absolute;
   top: 10px;
   left: 10px;
@@ -215,22 +215,42 @@ input[type="text"] {
   font-size: 1rem;
 }
 #modal-person { font-size: 1.1rem; font-weight: 800; margin-bottom: 10px; text-align: center; }
-#modal-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+#modal-list, #find-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .modal-item {
   background: #f3effc;
   border-radius: 10px;
   padding: 8px 10px;
   font-size: .9rem;
 }
+button.modal-item {
+  display: block;
+  width: 100%;
+  border: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+button.modal-item:active { background: #e4dafc; }
 #modal-form { display: flex; gap: 8px; }
-#modal-form input {
+#modal-form input, #code-form input {
   flex: 1;
   padding: 12px;
   border-radius: 12px;
   border: 2px solid #ddd;
   font-size: .95rem;
 }
-#modal-msg { margin-top: 8px; font-size: .82rem; color: #b23b3b; min-height: 1.1em; }
+#code-form { display: flex; gap: 8px; }
+#find-search {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 2px solid #ddd;
+  font-size: .95rem;
+  margin-bottom: 10px;
+}
+#modal-msg, #code-msg { margin-top: 8px; font-size: .82rem; color: #b23b3b; min-height: 1.1em; }
+#find-btn { margin-bottom: 10px; width: 100%; }
 
 /* ---- Countdown ---- */
 #countdown-overlay {

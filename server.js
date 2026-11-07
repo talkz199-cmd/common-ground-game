@@ -13,6 +13,7 @@ const PORT = process.env.PORT || 3000;
 const GAME_DURATION_MS = 4 * 60 * 1000; // 4 minutes
 const END_COUNTDOWN_MS = 10 * 1000; // 10 seconds
 const MAX_PER_PAIR = 3;
+const START_CODE = '4788';
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -129,9 +130,14 @@ io.on('connection', (socket) => {
     broadcastRoster();
   });
 
-  socket.on('startGame', () => {
+  socket.on('startGame', (data = {}) => {
     const playerId = socketIdToPlayerId.get(socket.id);
     if (!playerId) return;
+    const code = String(data.code || '').trim();
+    if (code !== START_CODE) {
+      socket.emit('startError', { reason: 'wrong-code' });
+      return;
+    }
     startGame();
   });
 
